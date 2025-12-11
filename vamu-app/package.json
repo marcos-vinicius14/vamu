@@ -10,7 +10,9 @@
     "postinstall": "nuxt prepare",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "services:up": "docker compose up -d && bun test && bun run dev",
+    "services:down": "docker compose down"
   },
   "dependencies": {
     "@nuxt/ui": "^4.2.1",
