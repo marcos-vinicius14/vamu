@@ -33,7 +33,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       body: event.data
     })
     
-    toast.add({ title: 'Event created!', color: 'success' })
+    toast.add({ title: 'Evento criado com sucesso!', color: 'success' })
     await navigateTo(`/event/${slug}`)
   } catch (err: any) {
     toast.add({ title: 'Erro ao criar evento', description: err.data?.message || err.message, color: 'error' })
