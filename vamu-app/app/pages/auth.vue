@@ -47,11 +47,13 @@ async function onSubmit(key: string) {
       toast.add({ title: 'Login realizado com sucesso!', color: 'success' })
     }
   } catch (error: any) {
-    console.error(error)
+    const msg = error.data?.message || error.statusMessage || error.message || "Ocorreu um erro inesperado.";
+    
     toast.add({
-      title: 'Erro na autenticação',
-      description: error.message || 'Ocorreu um erro inesperado.',
-      color: 'error'
+      title: 'Ops! Algo deu errado 😕',
+      description: msg,
+      color: 'error',
+      icon: 'i-heroicons-exclamation-triangle'
     })
   } finally {
     loading.value = false

@@ -36,13 +36,29 @@ const rsvpSuccess = ref(false)
 
 const rsvpStatus = ref<'CONFIRMED' | 'DECLINED' | null>(null)
 
+import { formatPhone, isValidPhone } from '~/utils/phone'
+
+watch(rsvpPhone, (val) => {
+  if (!val) return
+  const formatted = formatPhone(val)
+  if (formatted !== val) {
+    rsvpPhone.value = formatted
+  }
+})
+
 const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
   if (!rsvpName.value) {
     toast.add({ title: 'Por favor, digite seu nome', color: 'error' })
     return
   }
-  if (status === 'CONFIRMED' && !rsvpPhone.value) {
+
+  if (!rsvpPhone.value) {
     toast.add({ title: 'Por favor, digite seu telefone', color: 'error' })
+    return
+  }
+  
+  if (!isValidPhone(rsvpPhone.value)) {
+    toast.add({ title: 'Por favor, digite um telefone válido', color: 'error' })
     return
   }
 
@@ -71,8 +87,15 @@ const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
 
     toast.add({ title: 'Resposta registrada com sucesso', color: 'neutral' })
 
-  } catch (e) {
-    toast.add({ title: 'Erro ao enviar RSVP', color: 'error' })
+  } catch (error: any) {
+    const msg = error.data?.message || error.statusMessage || "Ocorreu um erro inesperado.";
+    
+    toast.add({
+      title: 'Ops! Algo deu errado 😕',
+      description: msg,
+      color: 'error',
+      icon: 'i-heroicons-exclamation-triangle'
+    })
   } finally {
     loading.value = false
   }
@@ -185,19 +208,28 @@ const formattedTime = computed(() => {
                 <!-- Form State -->
                 <div v-else class="space-y-4 max-w-md mx-auto">
                     <UInput v-model="rsvpName" placeholder="Seu Nome Completo" size="xl" icon="i-heroicons-user" />
+                    <UInput 
+                        v-model="rsvpPhone" 
+                        placeholder="(11) 99999-9999" 
+                        size="xl" 
+                        icon="i-heroicons-phone" 
+                        :maxlength="15"
+                        type="tel"
+                        @keypress="(e: KeyboardEvent) => { if (!/[0-9]/.test(e.key)) e.preventDefault() }"
+                    />
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-                        <UPopover :popper="{ placement: 'top' }">
-                            <UButton type="button" color="neutral" variant="solid" block size="xl" label="Confirmar Presença 🥳" class="w-full" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
-                            
-                            <template #content>
-                                <div class="p-4 space-y-3 w-72">
-                                    <p class="text-sm font-medium">Quase lá! Precisamos do seu número para confirmar.</p>
-                                    <UInput v-model="rsvpPhone" placeholder="Seu WhatsApp" icon="i-heroicons-phone" autofocus />
-                                    <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" type="button" color="neutral" variant="solid" block label="Enviar Confirmação" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
-                                </div>
-                            </template>
-                        </UPopover>
+                        <UButton 
+                            @click="submitRsvp('CONFIRMED')" 
+                            :loading="loading" 
+                            type="button" 
+                            color="neutral" 
+                            variant="solid" 
+                            block 
+                            size="xl" 
+                            label="Confirmar Presença 🥳"
+                            :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" 
+                        />
 
                         <UButton 
                             @click="submitRsvp('DECLINED')" 

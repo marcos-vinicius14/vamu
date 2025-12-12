@@ -3,9 +3,9 @@ import { guests } from '~/../server/database/schemas/app';
 import { z } from 'zod';
 
 const rsvpSchema = z.object({
-    eventId: z.string(),
-    name: z.string().min(1),
-    phoneNumber: z.string().min(1),
+    eventId: z.string().min(1, 'ID do evento é obrigatório'),
+    name: z.string().min(1, 'Por favor, digite seu nome'),
+    phoneNumber: z.string().optional().or(z.literal('')),
     status: z.enum(['CONFIRMED', 'DECLINED']),
 });
 
