@@ -5,9 +5,9 @@ import { events } from '../../database/schemas/app';
 import { generateSlug } from '../../utils/slug';
 
 const createEventSchema = z.object({
-    title: z.string().min(1, 'Title is required'),
+    title: z.string().min(1, 'O nome do evento é obrigatório'),
     date: z.coerce.date(),
-    location: z.string().min(1, 'Location is required'),
+    location: z.string().min(1, 'A localização é obrigatória'),
     description: z.string().optional(),
 });
 
@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (!session) {
         throw createError({
             statusCode: 401,
-            statusMessage: 'Unauthorized',
+            message: 'Não autorizado.',
         });
     }
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     if (!result.success) {
         throw createError({
             statusCode: 400,
-            statusMessage: 'Validation Error',
+            message: 'Erro de validação',
             data: result.error.message,
         });
     }
