@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
     if (!session) {
         throw createError({
             statusCode: 401,
-            statusMessage: 'Unauthorized',
+            message: 'Não autorizado.',
         });
     }
 
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
     if (!result.success) {
         throw createError({
             statusCode: 400,
-            statusMessage: 'Validation Error',
+            message: 'Erro de validação',
             data: result.error.message,
         });
     }

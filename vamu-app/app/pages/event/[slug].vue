@@ -34,6 +34,8 @@ const rsvpPhone = ref('')
 const loading = ref(false)
 const rsvpSuccess = ref(false)
 
+const rsvpStatus = ref<'CONFIRMED' | 'DECLINED' | null>(null)
+
 const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
   if (!rsvpName.value) {
     toast.add({ title: 'Por favor, digite seu nome', color: 'error' })
@@ -55,10 +57,19 @@ const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
         status
       }
     })
-    toast.add({ title: status === 'CONFIRMED' ? 'Presença confirmada!' : 'Obrigado por avisar!', color: 'success' })
-    rsvpSuccess.value = true;
-    rsvpName.value = '';
-    rsvpPhone.value = '';
+    
+    rsvpStatus.value = status
+    
+    rsvpSuccess.value = true
+    rsvpName.value = ''
+    rsvpPhone.value = ''
+
+    if (status === 'CONFIRMED') {
+        toast.add({ title: 'Presença confirmada!', color: 'success' })
+        return
+    }
+
+    toast.add({ title: 'Resposta registrada com sucesso', color: 'neutral' })
 
   } catch (e) {
     toast.add({ title: 'Erro ao enviar RSVP', color: 'error' })
@@ -158,10 +169,16 @@ const formattedTime = computed(() => {
                 
                 <!-- Success State -->
                 <div v-if="rsvpSuccess" class="py-8 text-center space-y-4 animate-fade-in">
-                     <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <UIcon name="i-heroicons-check" class="w-8 h-8" />
-                     </div>
-                     <p class="text-lg font-medium text-gray-900 dark:text-white">Obrigado por responder!</p>
+                     <template v-if="rsvpStatus === 'CONFIRMED'">
+                        <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <UIcon name="i-heroicons-check" class="w-8 h-8" />
+                        </div>
+                        <p class="text-lg font-medium text-gray-900 dark:text-white">Oba! 🎉</p>
+                     </template>
+                     <template v-else>
+                         <p class="text-gray-500 dark:text-gray-400">Que pena... 😢 Sua resposta foi enviada ao anfitrião.</p>
+                     </template>
+
                      <UButton @click="rsvpSuccess = false" color="neutral" variant="ghost" size="sm">Enviar outra resposta</UButton>
                 </div>
 
@@ -171,13 +188,13 @@ const formattedTime = computed(() => {
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                         <UPopover :popper="{ placement: 'top' }">
-                            <UButton color="neutral" variant="solid" block size="xl" label="Confirmar Presença 🥳" class="w-full" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
+                            <UButton type="button" color="neutral" variant="solid" block size="xl" label="Confirmar Presença 🥳" class="w-full" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
                             
                             <template #content>
                                 <div class="p-4 space-y-3 w-72">
                                     <p class="text-sm font-medium">Quase lá! Precisamos do seu número para confirmar.</p>
                                     <UInput v-model="rsvpPhone" placeholder="Seu WhatsApp" icon="i-heroicons-phone" autofocus />
-                                    <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" color="neutral" variant="solid" block label="Enviar Confirmação" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
+                                    <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" type="button" color="neutral" variant="solid" block label="Enviar Confirmação" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
                                 </div>
                             </template>
                         </UPopover>
@@ -185,6 +202,7 @@ const formattedTime = computed(() => {
                         <UButton 
                             @click="submitRsvp('DECLINED')" 
                             :loading="loading" 
+                            type="button"
                             color="neutral" 
                             variant="subtle" 
                             block 

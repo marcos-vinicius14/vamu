@@ -65,7 +65,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 
         <!-- Properties Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 dark:bg-gray-800/50 p-6 rounded-lg">
-          <UFormGroup label="Data" name="date" class="w-full" :ui="{ label: { base: 'text-xs font-medium text-gray-500 uppercase tracking-wider mb-1' } }">
+          <UFormField label="Data" name="date" class="w-full" :ui="{ label: 'text-xs font-medium text-gray-500 uppercase tracking-wider mb-1' }">
             <UInput 
                 v-model="state.date" 
                 type="datetime-local" 
@@ -74,9 +74,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 color="neutral"
                 class="w-full" 
             />
-          </UFormGroup>
+          </UFormField>
 
-          <UFormGroup label="Local" name="location" class="w-full" :ui="{ label: { base: 'text-xs font-medium text-gray-500 uppercase tracking-wider mb-1' } }">
+          <UFormField label="Local" name="location" class="w-full" :ui="{ label: 'text-xs font-medium text-gray-500 uppercase tracking-wider mb-1' }">
             <UInput 
                 v-model="state.location" 
                 placeholder="Endereço ou Link" 
@@ -85,7 +85,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 color="neutral"
                 class="w-full" 
             />
-          </UFormGroup>
+          </UFormField>
         </div>
 
         <!-- Description / Body -->
@@ -94,7 +94,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                 <UIcon name="i-heroicons-bars-3-bottom-left" class="w-5 h-5" />
                 <span class="text-sm font-medium">Detalhes</span>
             </div>
-            <UFormGroup name="description" class="w-full">
+            <UFormField name="description" class="w-full">
             <UTextarea 
                 v-model="state.description" 
                 variant="none" 
@@ -107,7 +107,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
                     base: 'text-gray-600 dark:text-gray-300 text-lg leading-relaxed p-0'
                 }"
             />
-            </UFormGroup>
+            </UFormField>
         </div>
 
         <!-- Footer / Action -->

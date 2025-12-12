@@ -16,7 +16,7 @@ export default defineEventHandler(async (event) => {
     if (!result.success) {
         throw createError({
             statusCode: 400,
-            statusMessage: 'Dados inválidos',
+            message: 'Dados inválidos! Verifique os campos e tente novamente.',
             data: result.error.message,
         });
     }
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     } catch (error) {
         throw createError({
             statusCode: 500,
-            statusMessage: 'Erro ao enviar RSVP',
+            message: 'Erro ao enviar convite! Tente novamente mais tarde.',
         });
     }
 });

@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     if (!slug) {
         throw createError({
             statusCode: 400,
-            statusMessage: 'Slug needed',
+            message: 'Slug necessário.',
         });
     }
 
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
             date: true,
             location: true,
             description: true,
-            theme: true, // Bringing theme as well since it might be useful for frontend
+            theme: true,
         },
         with: {
             user: {
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
     if (!foundEvent) {
         throw createError({
             statusCode: 404,
-            statusMessage: 'Event not found',
+            message: 'Evento não encontrado.',
         });
     }
 
