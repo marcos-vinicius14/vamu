@@ -8,6 +8,20 @@
       "when": 1765414646297,
       "tag": "0000_smart_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765496040606,
+      "tag": "0001_curious_agent_zero",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765497100641,
+      "tag": "0002_wakeful_sue_storm",
+      "breakpoints": true
     }
   ]
 }
