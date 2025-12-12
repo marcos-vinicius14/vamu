@@ -12,6 +12,7 @@ interface EventResponse {
   theme: string | null
   user: {
     name: string
+    avatar?: string
   }
 }
 
@@ -31,16 +32,19 @@ useSeoMeta({
 const rsvpName = ref('')
 const rsvpPhone = ref('')
 const loading = ref(false)
+const rsvpSuccess = ref(false)
 
 const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
   if (!rsvpName.value) {
     toast.add({ title: 'Por favor, digite seu nome', color: 'error' })
     return
   }
-  if (!rsvpPhone.value) {
+  // Only require phone for confirmation
+  if (status === 'CONFIRMED' && !rsvpPhone.value) {
     toast.add({ title: 'Por favor, digite seu telefone', color: 'error' })
     return
   }
+
   loading.value = true
   try {
     await $fetch('/api/rsvp', {
@@ -48,11 +52,13 @@ const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
       body: {
         eventId: event.value?.id,
         name: rsvpName.value,
-        phoneNumber: rsvpPhone.value,
+        phoneNumber: rsvpPhone.value || undefined, // Send undefined if empty (for declined)
         status
       }
     })
-    toast.add({ title: 'RSVP enviado com sucesso!', color: 'success' })
+    toast.add({ title: status === 'CONFIRMED' ? 'Presença confirmada!' : 'Obrigado por avisar!', color: 'success' })
+    rsvpSuccess.value = true;
+    // Reset form
     rsvpName.value = '';
     rsvpPhone.value = '';
 
@@ -65,75 +71,152 @@ const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
 
 const mapUrl = computed(() => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.value?.location || '')}`)
 
-const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', { 
+const formattedDate = computed(() => {
+    if (!event.value?.date) return ''
+    return new Date(event.value.date).toLocaleDateString('pt-BR', { 
         weekday: 'long', 
         year: 'numeric', 
         month: 'long', 
-        day: 'numeric',
-        hour: '2-digit',
+        day: 'numeric'
+    })
+})
+
+const formattedTime = computed(() => {
+    if (!event.value?.date) return ''
+    return new Date(event.value.date).toLocaleTimeString('pt-BR', { 
+        hour: '2-digit', 
         minute: '2-digit'
     })
-}
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
-    <div class="w-full max-w-md space-y-8">
-      <UCard class="w-full shadow-xl ring-1 ring-gray-900/5 items-center">
+  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6">
+    <div class="max-w-2xl mx-auto space-y-12">
+      
+      <!-- Header Section -->
+      <div class="space-y-6">
+        <!-- Decorative Icon -->
+        <div class="text-6xl select-none animate-fade-in">
+          🎉
+        </div>
+
+        <div class="space-y-2">
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
+                {{ event?.title }}
+            </h1>
+            <div class="flex items-center gap-2 text-gray-500 font-medium">
+                <span>Convite de</span>
+                <span class="text-gray-900 dark:text-gray-300 font-semibold">{{ event?.user.name }}</span>
+            </div>
+        </div>
+      </div>
+
+      <!-- Properties Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-b border-gray-100 dark:border-gray-800 py-8">
         
-        <!-- Header -->
-        <div class="text-center space-y-4 mb-8">
-             <div class="space-y-2">
-                <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">{{ event?.title ?? 'Título não informado.' }}</h1>
-                <p class="text-sm text-gray-500">
-                    Convite de <span class="font-medium text-primary-600">{{ event?.user.name ?? 'Usuário não informado.' }}</span>
-                </p>
-             </div>
-             
-             <div class="inline-flex items-center rounded-full bg-primary-50 px-4 py-1.5 text-sm font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20">
-                {{ formatDate(event?.date ?? 'Data não informada.') }}
-             </div>
-        </div>
-
-        <UDivider class="my-6" />
-
-        <!-- Details -->
-        <div class="space-y-6">
-            <div v-if="event?.description" class="prose prose-sm text-gray-600 text-center mx-auto">
-                <p>{{ event.description }}</p>
+        <!-- Date Block -->
+        <div class="flex items-start gap-4">
+            <div class="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500">
+                <UIcon name="i-heroicons-calendar" class="w-6 h-6" />
             </div>
-
-            <div v-if="event?.location" class="bg-gray-50 rounded-lg p-4 space-y-3">
-                 <div class="flex items-start gap-3">
-                    <UIcon name="i-heroicons-map-pin" class="w-5 h-5 text-gray-400 mt-0.5" />
-                    <div class="text-sm text-gray-700 font-medium break-words">{{ event.location }}</div>
-                 </div>
-                 <UButton :to="mapUrl" target="_blank" icon="i-heroicons-map" label="Abrir no Google Maps" block variant="outline" size="sm" />
+            <div class="space-y-0.5">
+                <div class="font-semibold text-gray-900 dark:text-white">Data</div>
+                <div class="text-gray-700 dark:text-gray-300 capitalize">{{ formattedDate }}</div>
+                <div class="text-sm text-gray-500 font-medium">{{ formattedTime }}</div>
             </div>
         </div>
 
-        <UDivider class="my-6" />
+        <!-- Location Block -->
+        <div class="flex items-start gap-4" v-if="event?.location">
+            <div class="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500">
+                <UIcon name="i-heroicons-map-pin" class="w-6 h-6" />
+            </div>
+            <div class="space-y-1">
+                 <div class="font-semibold text-gray-900 dark:text-white">Local</div>
+                 <div class="text-gray-700 dark:text-gray-300 break-words line-clamp-2 md:line-clamp-none">{{ event.location }}</div>
+                 <UButton 
+                    :to="mapUrl" 
+                    target="_blank" 
+                    variant="link" 
+                    color="neutral" 
+                    icon="i-heroicons-arrow-top-right-on-square"
+                    size="xs"
+                    class="p-0 gap-1"
+                 >
+                    Ver no Mapa
+                 </UButton>
+            </div>
+        </div>
 
-        <!-- RSVP Form -->
-        <div class="space-y-4">
-             <div class="text-center">
-                <h3 class="text-lg font-semibold text-gray-900">Você vai?</h3>
-                <p class="text-sm text-gray-500">Confirme sua presença abaixo</p>
-             </div>
-             
-             <div class="space-y-3">
-                <UInput v-model="rsvpName" placeholder="Seu Nome Completo" size="lg" icon="i-heroicons-user" />
-                <UInput v-model="rsvpPhone" placeholder="Seu Telefone (WhatsApp)" size="lg" icon="i-heroicons-phone" type="tel" />
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" color="success" label="Eu Vou" block size="lg" icon="i-heroicons-check-circle" />
-                    <UButton @click="submitRsvp('DECLINED')" :loading="loading" color="warning" variant="solid" label="Não Vou" block size="lg" icon="i-heroicons-x-circle" />
+      </div>
+
+      <!-- Body / Description -->
+      <div v-if="event?.description" class="prose prose-lg dark:prose-invert prose-gray max-w-none text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+        {{ event.description }}
+      </div>
+
+      <!-- RSVP Section -->
+        <div class="pt-8 relative">
+            <UCard class="shadow-lg ring-1 ring-gray-200 dark:ring-gray-800">
+                <!-- Header -->
+                <div class="mb-6 text-center">
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2">
+                        Você vai?
+                        <span class="text-2xl">👋</span>
+                    </h3>
                 </div>
-             </div>
+                
+                <!-- Success State -->
+                <div v-if="rsvpSuccess" class="py-8 text-center space-y-4 animate-fade-in">
+                     <div class="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <UIcon name="i-heroicons-check" class="w-8 h-8" />
+                     </div>
+                     <p class="text-lg font-medium text-gray-900 dark:text-white">Obrigado por responder!</p>
+                     <UButton @click="rsvpSuccess = false" color="neutral" variant="ghost" size="sm">Enviar outra resposta</UButton>
+                </div>
+
+                <!-- Form State -->
+                <div v-else class="space-y-4 max-w-md mx-auto">
+                    <UInput v-model="rsvpName" placeholder="Seu Nome Completo" size="xl" icon="i-heroicons-user" />
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                        <UPopover :popper="{ placement: 'top' }">
+                            <UButton color="neutral" variant="solid" block size="xl" label="Confirmar Presença 🥳" class="w-full" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
+                            
+                            <template #content>
+                                <div class="p-4 space-y-3 w-72">
+                                    <p class="text-sm font-medium">Quase lá! Precisamos do seu número para confirmar.</p>
+                                    <UInput v-model="rsvpPhone" placeholder="Seu WhatsApp" icon="i-heroicons-phone" autofocus />
+                                    <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" color="neutral" variant="solid" block label="Enviar Confirmação" :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
+                                </div>
+                            </template>
+                        </UPopover>
+
+                        <UButton 
+                            @click="submitRsvp('DECLINED')" 
+                            :loading="loading" 
+                            color="neutral" 
+                            variant="subtle" 
+                            block 
+                            size="xl" 
+                            label="Não poderei ir" 
+                        />
+                    </div>
+                </div>
+            </UCard>
         </div>
 
-      </UCard>
     </div>
   </div>
 </template>
+
+<style scoped>
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
