@@ -39,7 +39,6 @@ const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
     toast.add({ title: 'Por favor, digite seu nome', color: 'error' })
     return
   }
-  // Only require phone for confirmation
   if (status === 'CONFIRMED' && !rsvpPhone.value) {
     toast.add({ title: 'Por favor, digite seu telefone', color: 'error' })
     return
@@ -52,13 +51,12 @@ const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
       body: {
         eventId: event.value?.id,
         name: rsvpName.value,
-        phoneNumber: rsvpPhone.value || undefined, // Send undefined if empty (for declined)
+        phoneNumber: rsvpPhone.value || undefined,
         status
       }
     })
     toast.add({ title: status === 'CONFIRMED' ? 'Presença confirmada!' : 'Obrigado por avisar!', color: 'success' })
     rsvpSuccess.value = true;
-    // Reset form
     rsvpName.value = '';
     rsvpPhone.value = '';
 
@@ -94,9 +92,7 @@ const formattedTime = computed(() => {
   <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6">
     <div class="max-w-2xl mx-auto space-y-12">
       
-      <!-- Header Section -->
       <div class="space-y-6">
-        <!-- Decorative Icon -->
         <div class="text-6xl select-none animate-fade-in">
           🎉
         </div>
@@ -112,10 +108,7 @@ const formattedTime = computed(() => {
         </div>
       </div>
 
-      <!-- Properties Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8 border-t border-b border-gray-100 dark:border-gray-800 py-8">
-        
-        <!-- Date Block -->
         <div class="flex items-start gap-4">
             <div class="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500">
                 <UIcon name="i-heroicons-calendar" class="w-6 h-6" />
@@ -127,7 +120,6 @@ const formattedTime = computed(() => {
             </div>
         </div>
 
-        <!-- Location Block -->
         <div class="flex items-start gap-4" v-if="event?.location">
             <div class="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500">
                 <UIcon name="i-heroicons-map-pin" class="w-6 h-6" />
@@ -151,15 +143,12 @@ const formattedTime = computed(() => {
 
       </div>
 
-      <!-- Body / Description -->
       <div v-if="event?.description" class="prose prose-lg dark:prose-invert prose-gray max-w-none text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
         {{ event.description }}
       </div>
 
-      <!-- RSVP Section -->
         <div class="pt-8 relative">
             <UCard class="shadow-lg ring-1 ring-gray-200 dark:ring-gray-800">
-                <!-- Header -->
                 <div class="mb-6 text-center">
                     <h3 class="text-xl font-bold text-gray-900 dark:text-white flex items-center justify-center gap-2">
                         Você vai?
