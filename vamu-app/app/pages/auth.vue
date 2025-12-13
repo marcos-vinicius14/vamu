@@ -31,21 +31,23 @@ async function onSubmit(key: string) {
   loading.value = true
   try {
     if (key === 'register') {
-      await signUp.email({
+      const { error } = await signUp.email({
         email: state.email,
         password: state.password,
         name: state.name,
-        callbackURL: '/dashboard'
       })
+      if (error) throw error
       toast.add({ title: 'Conta criada com sucesso!', color: 'success' })
     } else {
-      await signIn.email({
+      const { error } = await signIn.email({
         email: state.email,
         password: state.password,
-        callbackURL: '/dashboard'
       })
+      if (error) throw error
       toast.add({ title: 'Login realizado com sucesso!', color: 'success' })
     }
+    // Explicit redirect after successful auth
+    await navigateTo('/dashboard')
   } catch (error: any) {
     const msg = error.data?.message || error.statusMessage || error.message || "Ocorreu um erro inesperado.";
     
