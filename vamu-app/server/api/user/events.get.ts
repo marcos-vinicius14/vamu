@@ -1,9 +1,8 @@
-import { db } from '../../utils/db';
 import { auth } from '../../utils/auth';
-import { events } from '../../database/schemas/app';
-import { eq, desc } from 'drizzle-orm';
+import { eventsService } from '../../features/events/events.service';
 
 export default defineEventHandler(async (event) => {
+    // 1. Authentication
     const session = await auth.api.getSession({
         headers: event.headers,
     });
@@ -15,16 +14,6 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const userEvents = await db.select({
-        id: events.id,
-        title: events.title,
-        slug: events.slug,
-        date: events.date,
-        createdAt: events.createdAt,
-    })
-        .from(events)
-        .where(eq(events.userId, session.user.id))
-        .orderBy(desc(events.createdAt));
-
-    return userEvents;
+    // 2. Business Logic (delegated to service)
+    return await eventsService.getUserEvents(session.user.id);
 });

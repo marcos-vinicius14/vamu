@@ -1,6 +1,4 @@
-import { eq } from 'drizzle-orm';
-import { db } from '~/../server/utils/db';
-import { events } from '~/../server/database/schemas/app';
+import { eventsService } from '../../features/events/events.service';
 
 export default defineEventHandler(async (event) => {
     const slug = getRouterParam(event, 'slug');
@@ -12,31 +10,14 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const foundEvent = await db.query.events.findFirst({
-        where: eq(events.slug, slug),
-        columns: {
-            id: true,
-            title: true,
-            date: true,
-            location: true,
-            description: true,
-            theme: true,
-        },
-        with: {
-            user: {
-                columns: {
-                    name: true,
-                },
-            },
-        },
-    });
+    const outcome = await eventsService.getBySlug(slug);
 
-    if (!foundEvent) {
+    if (!outcome.success) {
         throw createError({
             statusCode: 404,
             message: 'Evento não encontrado.',
         });
     }
 
-    return foundEvent;
+    return outcome.data;
 });

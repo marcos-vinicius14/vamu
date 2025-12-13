@@ -1,13 +1,5 @@
-import { db } from '~/../server/utils/db';
-import { guests } from '~/../server/database/schemas/app';
-import { z } from 'zod';
-
-const rsvpSchema = z.object({
-    eventId: z.string().min(1, 'ID do evento é obrigatório'),
-    name: z.string().min(1, 'Por favor, digite seu nome'),
-    phoneNumber: z.string().optional().or(z.literal('')),
-    status: z.enum(['CONFIRMED', 'DECLINED']),
-});
+import { guestsService } from '../features/guests/guests.service';
+import { rsvpSchema } from '../features/guests/guests.dto';
 
 export default defineEventHandler(async (event) => {
     const body = await readBody(event);
@@ -21,16 +13,8 @@ export default defineEventHandler(async (event) => {
         });
     }
 
-    const { eventId, name, phoneNumber, status } = result.data;
-
     try {
-        await db.insert(guests).values({
-            eventId,
-            name,
-            phoneNumber,
-            status,
-        });
-        return { success: true };
+        return await guestsService.createRsvp(result.data);
     } catch (error) {
         throw createError({
             statusCode: 500,
