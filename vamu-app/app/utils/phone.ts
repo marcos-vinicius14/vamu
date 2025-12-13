@@ -1,23 +1,22 @@
+
 export const formatPhone = (value: string) => {
-    const cleaned = value.replace(/\D/g, '')
-    const limited = cleaned.slice(0, 11)
+    if (!value) return ''
+
+    const digits = value.replace(/\D/g, '')
+
+    const limited = digits.slice(0, 11)
 
     if (limited.length <= 2) {
-        return limited
+        return `(${limited}`
     }
-
-    if (limited.length <= 6) {
+    if (limited.length <= 7) {
         return `(${limited.slice(0, 2)}) ${limited.slice(2)}`
     }
-
-    if (limited.length <= 10) {
-        return `(${limited.slice(0, 2)}) ${limited.slice(2, 6)}-${limited.slice(6)}`
-    }
-
     return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7)}`
 }
 
-export const isValidPhone = (phone: string): boolean => {
-    const cleaned = phone.replace(/\D/g, '')
-    return cleaned.length === 10 || cleaned.length === 11
+export const isValidPhone = (value: string) => {
+    if (!value) return false
+    const digits = value.replace(/\D/g, '')
+    return digits.length === 11
 }

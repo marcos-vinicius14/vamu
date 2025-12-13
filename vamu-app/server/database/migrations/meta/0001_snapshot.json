@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream
   "id": "3ee46486-5909-4ba6-90e0-ca5844617770",
+=======
+  "id": "f4f69e0f-fed9-4e4e-8595-38c2ecc95e30",
+>>>>>>> Stashed changes
   "prevId": "1e44635b-88d3-4e9b-bff4-f8afe04f8a87",
   "version": "7",
   "dialect": "postgresql",
@@ -419,6 +423,15 @@
           "primaryKey": false,
           "notNull": true
         },
+<<<<<<< Updated upstream
+=======
+        "phone_number": {
+          "name": "phone_number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+>>>>>>> Stashed changes
         "status": {
           "name": "status",
           "type": "text",
@@ -441,6 +454,7 @@
           "default": "now()"
         }
       },
+<<<<<<< Updated upstream
       "indexes": {
         "event_idx": {
           "name": "event_idx",
@@ -458,6 +472,9 @@
           "with": {}
         }
       },
+=======
+      "indexes": {},
+>>>>>>> Stashed changes
       "foreignKeys": {
         "tb_guests_event_id_tb_events_id_fk": {
           "name": "tb_guests_event_id_tb_events_id_fk",
