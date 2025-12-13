@@ -30,11 +30,13 @@ if (error.value) {
 
 const search = ref('')
 
-const columns: any = [
-    { key: 'name', label: 'Nome' },
-    { key: 'status', label: 'Status' },
-    { key: 'phoneNumber', label: 'Telefone' },
-    { key: 'createdAt', label: 'Data' }
+// Define guest type for type safety
+type Guest = InferSelectModel<typeof guests>
+
+const columns = [
+    { accessorKey: 'name', header: 'Nome' },
+    { accessorKey: 'phoneNumber', header: 'Celular' },
+    { accessorKey: 'status', header: 'Status' }
 ]
 
 const filteredGuests = computed(() => {
@@ -79,8 +81,8 @@ const getStatusColor = (status: string) => {
 
 const getStatusLabel = (status: string) => {
     switch (status) {
-        case 'CONFIRMED': return 'Confirmado'
-        case 'DECLINED': return 'Recusado'
+        case 'CONFIRMED': return 'Eu vou!'
+        case 'DECLINED': return 'Eu não vou'
         case 'PENDING': return 'Pendente'
         default: return status
     }
@@ -187,19 +189,15 @@ const getStatusLabel = (status: string) => {
                         </UInput>
                     </div>
 
-                    <UTable :rows="filteredGuests" :columns="columns">
-                        <template #name-data="{ row }">
-                            <span class="font-medium text-gray-900 dark:text-white">{{ (row as any).name }}</span>
+                    <UTable :data="filteredGuests" :columns="columns">
+                        <template #name-cell="{ row }">
+                            <span class="font-medium text-gray-900 dark:text-white">{{ row.original.name }}</span>
                         </template>
 
-                        <template #status-data="{ row }">
-                            <UBadge :color="getStatusColor((row as any).status)" variant="subtle">
-                                {{ getStatusLabel((row as any).status) }}
+                        <template #status-cell="{ row }">
+                            <UBadge :color="getStatusColor(row.original.status ?? '')" variant="subtle">
+                                {{ getStatusLabel(row.original.status ?? '') }}
                             </UBadge>
-                        </template>
-                        
-                        <template #createdAt-data="{ row }">
-                            <span class="text-gray-500 text-sm">{{ formatDate((row as any).createdAt) }}</span>
                         </template>
                     </UTable>
                     
