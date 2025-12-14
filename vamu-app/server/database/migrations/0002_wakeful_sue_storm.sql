@@ -1,0 +1,1 @@
+ALTER TABLE "tb_guests" ADD COLUMN "phone_number" text;

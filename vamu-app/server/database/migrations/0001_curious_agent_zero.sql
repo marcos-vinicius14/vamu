@@ -1,0 +1,1 @@
+CREATE INDEX "event_idx" ON "tb_guests" USING btree ("event_id");
