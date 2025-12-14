@@ -1,22 +1,23 @@
 <script setup lang="ts">
+import { useEventPage } from '~/composables/useEventPage'
+
 const route = useRoute()
 const slug = route.params.slug as string
-const toast = useToast()
 
-interface EventResponse {
-  id: string
-  title: string
-  date: string
-  location: string | null
-  description: string | null
-  theme: string | null
-  user: {
-    name: string
-    avatar?: string
-  }
-}
-
-const { data: event, error } = await useFetch<EventResponse>(`/api/events/${slug}`)
+const {
+  event,
+  error,
+  rsvpName,
+  rsvpPhone,
+  loading,
+  rsvpSuccess,
+  rsvpStatus,
+  submitRsvp,
+  resetRsvp,
+  mapUrl,
+  formattedDate,
+  formattedTime,
+} = await useEventPage(slug)
 
 if (error.value || !event.value) {
   throw createError({ statusCode: 404, statusMessage: 'Evento não encontrado.' })
@@ -27,98 +28,6 @@ useSeoMeta({
   description: event.value.description,
   ogTitle: event.value.title,
   ogDescription: event.value.description,
-})
-
-const rsvpName = ref('')
-const rsvpPhone = ref('')
-const loading = ref(false)
-const rsvpSuccess = ref(false)
-
-const rsvpStatus = ref<'CONFIRMED' | 'DECLINED' | null>(null)
-
-import { formatPhone, isValidPhone } from '~/utils/phone'
-
-watch(rsvpPhone, (val) => {
-  if (!val) return
-  const formatted = formatPhone(val)
-  if (formatted !== val) {
-    rsvpPhone.value = formatted
-  }
-})
-
-const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
-  if (!rsvpName.value) {
-    toast.add({ title: 'Por favor, digite seu nome', color: 'error' })
-    return
-  }
-
-  if (!rsvpPhone.value) {
-    toast.add({ title: 'Por favor, digite seu telefone', color: 'error' })
-    return
-  }
-
-  if (!isValidPhone(rsvpPhone.value)) {
-    toast.add({ title: 'Por favor, digite um telefone válido', color: 'error' })
-    return
-  }
-
-  loading.value = true
-  try {
-    await $fetch('/api/rsvp', {
-      method: 'POST',
-      body: {
-        eventId: event.value?.id,
-        name: rsvpName.value,
-        phoneNumber: rsvpPhone.value || undefined,
-        status
-      }
-    })
-
-    rsvpStatus.value = status
-
-    rsvpSuccess.value = true
-    rsvpName.value = ''
-    rsvpPhone.value = ''
-
-    if (status === 'CONFIRMED') {
-      toast.add({ title: 'Presença confirmada!', color: 'success' })
-      return
-    }
-
-    toast.add({ title: 'Resposta registrada com sucesso', color: 'neutral' })
-
-  } catch (error: any) {
-    const msg = error.data?.message || error.statusMessage || "Ocorreu um erro inesperado.";
-
-    toast.add({
-      title: 'Ops! Algo deu errado 😕',
-      description: msg,
-      color: 'error',
-      icon: 'i-heroicons-exclamation-triangle'
-    })
-  } finally {
-    loading.value = false
-  }
-}
-
-const mapUrl = computed(() => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.value?.location || '')}`)
-
-const formattedDate = computed(() => {
-  if (!event.value?.date) return ''
-  return new Date(event.value.date).toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-})
-
-const formattedTime = computed(() => {
-  if (!event.value?.date) return ''
-  return new Date(event.value.date).toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 })
 </script>
 
@@ -161,7 +70,7 @@ const formattedTime = computed(() => {
           <div class="space-y-1">
             <div class="font-semibold text-gray-900 dark:text-white">Local</div>
             <div class="text-gray-700 dark:text-gray-300 break-words line-clamp-2 md:line-clamp-none">{{ event.location
-              }}</div>
+            }}</div>
             <UButton :to="mapUrl" target="_blank" variant="link" color="neutral"
               icon="i-heroicons-arrow-top-right-on-square" size="xs" class="p-0 gap-1">
               Ver no Mapa
@@ -198,7 +107,7 @@ const formattedTime = computed(() => {
               <p class="text-gray-500 dark:text-gray-400">Que pena... 😢 Sua resposta foi enviada ao anfitrião.</p>
             </template>
 
-            <UButton @click="rsvpSuccess = false" color="neutral" variant="ghost" size="sm">Enviar outra resposta
+            <UButton @click="resetRsvp" color="neutral" variant="ghost" size="sm">Enviar outra resposta
             </UButton>
           </div>
 
