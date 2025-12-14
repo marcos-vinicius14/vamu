@@ -17,6 +17,7 @@
   "dependencies": {
     "@nuxt/ui": "^4.2.1",
     "@tanstack/vue-query": "^5.92.1",
+    "@vite-pwa/nuxt": "^1.1.0",
     "better-auth": "^1.4.6",
     "drizzle-orm": "^0.45.1",
     "nuxt": "^4.2.2",
