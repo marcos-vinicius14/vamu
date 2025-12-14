@@ -1,129 +1,73 @@
 <script setup lang="ts">
+import { useEventPage } from '~/composables/useEventPage'
+
 const route = useRoute()
 const slug = route.params.slug as string
-const toast = useToast()
 
-interface EventResponse {
-  id: string
-  title: string
-  date: string
-  location: string | null
-  description: string | null
-  theme: string | null
-  user: {
-    name: string
-    avatar?: string
-  }
-}
+const {
+  event,
+  isLoading,
+  isError,
+  errorMessage,
+  retry,
+  rsvpName,
+  rsvpPhone,
+  rsvpLoading,
+  rsvpSuccess,
+  rsvpStatus,
+  submitRsvp,
+  resetRsvp,
+  mapUrl,
+  formattedDate,
+  formattedTime,
+} = useEventPage(slug)
 
-const { data: event, error } = await useFetch<EventResponse>(`/api/events/${slug}`)
-
-if (error.value || !event.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Evento não encontrado.' })
-}
-
-useSeoMeta({
-  title: event.value.title,
-  description: event.value.description,
-  ogTitle: event.value.title,
-  ogDescription: event.value.description,
-})
-
-const rsvpName = ref('')
-const rsvpPhone = ref('')
-const loading = ref(false)
-const rsvpSuccess = ref(false)
-
-const rsvpStatus = ref<'CONFIRMED' | 'DECLINED' | null>(null)
-
-import { formatPhone, isValidPhone } from '~/utils/phone'
-
-watch(rsvpPhone, (val) => {
-  if (!val) return
-  const formatted = formatPhone(val)
-  if (formatted !== val) {
-    rsvpPhone.value = formatted
-  }
-})
-
-const submitRsvp = async (status: 'CONFIRMED' | 'DECLINED') => {
-  if (!rsvpName.value) {
-    toast.add({ title: 'Por favor, digite seu nome', color: 'error' })
-    return
-  }
-
-  if (!rsvpPhone.value) {
-    toast.add({ title: 'Por favor, digite seu telefone', color: 'error' })
-    return
-  }
-
-  if (!isValidPhone(rsvpPhone.value)) {
-    toast.add({ title: 'Por favor, digite um telefone válido', color: 'error' })
-    return
-  }
-
-  loading.value = true
-  try {
-    await $fetch('/api/rsvp', {
-      method: 'POST',
-      body: {
-        eventId: event.value?.id,
-        name: rsvpName.value,
-        phoneNumber: rsvpPhone.value || undefined,
-        status
-      }
+watchEffect(() => {
+  if (event.value) {
+    useSeoMeta({
+      title: event.value.title,
+      description: event.value.description,
+      ogTitle: event.value.title,
+      ogDescription: event.value.description,
     })
-
-    rsvpStatus.value = status
-
-    rsvpSuccess.value = true
-    rsvpName.value = ''
-    rsvpPhone.value = ''
-
-    if (status === 'CONFIRMED') {
-      toast.add({ title: 'Presença confirmada!', color: 'success' })
-      return
-    }
-
-    toast.add({ title: 'Resposta registrada com sucesso', color: 'neutral' })
-
-  } catch (error: any) {
-    const msg = error.data?.message || error.statusMessage || "Ocorreu um erro inesperado.";
-
-    toast.add({
-      title: 'Ops! Algo deu errado 😕',
-      description: msg,
-      color: 'error',
-      icon: 'i-heroicons-exclamation-triangle'
-    })
-  } finally {
-    loading.value = false
   }
-}
-
-const mapUrl = computed(() => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.value?.location || '')}`)
-
-const formattedDate = computed(() => {
-  if (!event.value?.date) return ''
-  return new Date(event.value.date).toLocaleDateString('pt-BR', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-})
-
-const formattedTime = computed(() => {
-  if (!event.value?.date) return ''
-  return new Date(event.value.date).toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6">
+  <!-- Loading State -->
+  <div v-if="isLoading" class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+    <div class="text-center space-y-4">
+      <UIcon name="i-heroicons-arrow-path" class="w-10 h-10 animate-spin text-gray-400" />
+      <p class="text-gray-500">Carregando evento...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="isError" class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
+    <div class="text-center space-y-6 max-w-md">
+      <div
+        class="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto">
+        <UIcon name="i-heroicons-exclamation-triangle" class="w-10 h-10" />
+      </div>
+      <div class="space-y-2">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Evento não encontrado</h1>
+        <p class="text-gray-500">{{ errorMessage || 'O evento que você está procurando não existe ou foi removido.' }}
+        </p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <UButton @click="retry" icon="i-heroicons-arrow-path" color="primary" variant="soft">
+          Tentar novamente
+        </UButton>
+        <UButton to="/" color="neutral" variant="ghost">
+          Voltar ao início
+        </UButton>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Content -->
+  <div v-else-if="event" class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6">
     <div class="max-w-2xl mx-auto space-y-12">
 
       <div class="space-y-6">
@@ -133,11 +77,11 @@ const formattedTime = computed(() => {
 
         <div class="space-y-2">
           <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-            {{ event?.title }}
+            {{ event.title }}
           </h1>
-          <div class="flex items-center gap-2 text-gray-500 font-medium">
+          <div v-if="event.user" class="flex items-center gap-2 text-gray-500 font-medium">
             <span>Convite de</span>
-            <span class="text-gray-900 dark:text-gray-300 font-semibold">{{ event?.user.name }}</span>
+            <span class="text-gray-900 dark:text-gray-300 font-semibold">{{ event.user.name }}</span>
           </div>
         </div>
       </div>
@@ -154,7 +98,7 @@ const formattedTime = computed(() => {
           </div>
         </div>
 
-        <div class="flex items-start gap-4" v-if="event?.location">
+        <div class="flex items-start gap-4" v-if="event.location">
           <div class="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500">
             <UIcon name="i-heroicons-map-pin" class="w-6 h-6" />
           </div>
@@ -168,10 +112,9 @@ const formattedTime = computed(() => {
             </UButton>
           </div>
         </div>
-
       </div>
 
-      <div v-if="event?.description"
+      <div v-if="event.description"
         class="prose prose-lg dark:prose-invert prose-gray max-w-none text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
         {{ event.description }}
       </div>
@@ -198,8 +141,7 @@ const formattedTime = computed(() => {
               <p class="text-gray-500 dark:text-gray-400">Que pena... 😢 Sua resposta foi enviada ao anfitrião.</p>
             </template>
 
-            <UButton @click="rsvpSuccess = false" color="neutral" variant="ghost" size="sm">Enviar outra resposta
-            </UButton>
+            <UButton @click="resetRsvp" color="neutral" variant="ghost" size="sm">Enviar outra resposta</UButton>
           </div>
 
           <!-- Form State -->
@@ -209,12 +151,12 @@ const formattedTime = computed(() => {
               type="tel" @keypress="(e: KeyboardEvent) => { if (!/[0-9]/.test(e.key)) e.preventDefault() }" />
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" type="button" color="neutral" variant="solid"
-                block size="xl" label="Confirmar Presença 🥳"
+              <UButton @click="submitRsvp('CONFIRMED')" :loading="rsvpLoading" type="button" color="neutral"
+                variant="solid" block size="xl" label="Confirmar Presença 🥳"
                 :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
 
-              <UButton @click="submitRsvp('DECLINED')" :loading="loading" type="button" color="neutral" variant="subtle"
-                block size="xl" label="Não poderei ir" />
+              <UButton @click="submitRsvp('DECLINED')" :loading="rsvpLoading" type="button" color="neutral"
+                variant="subtle" block size="xl" label="Não poderei ir" />
             </div>
           </div>
         </UCard>

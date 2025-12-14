@@ -1,23 +1,11 @@
 <script setup lang="ts">
-import type { InferSelectModel } from 'drizzle-orm'
-import { events } from '~/../server/database/schemas/app'
+import { useDashboard } from '~/composables/useDashboard'
 
 definePageMeta({
     middleware: 'auth'
 })
 
-// Define a type for the response since we select specific fields in the API
-type EventListItem = Pick<InferSelectModel<typeof events>, 'id' | 'title' | 'slug' | 'date' | 'createdAt'>
-
-const { data: myEvents, status } = await useFetch<EventListItem[]>('/api/user/events')
-
-const formatDate = (date: string | Date) => {
-    return new Date(date).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-    })
-}
+const { myEvents, status, isEmpty, formatDate } = await useDashboard()
 </script>
 
 <template>
@@ -28,13 +16,7 @@ const formatDate = (date: string | Date) => {
                     <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Meus Eventos</h1>
                     <p class="text-gray-500 mt-1">Gerencie seus eventos e acompanhe as confirmações.</p>
                 </div>
-                <UButton 
-                    label="Novo Evento" 
-                    icon="i-heroicons-plus" 
-                    to="/create" 
-                    size="lg" 
-                    color="primary" 
-                />
+                <UButton label="Novo Evento" icon="i-heroicons-plus" to="/create" size="lg" color="primary" />
             </div>
 
             <!-- Loading State -->
@@ -46,17 +28,15 @@ const formatDate = (date: string | Date) => {
             </div>
 
             <!-- Empty State -->
-            <div v-else-if="!myEvents || myEvents.length === 0" class="text-center py-24">
-                <div class="bg-gray-100 dark:bg-gray-900 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div v-else-if="isEmpty" class="text-center py-24">
+                <div
+                    class="bg-gray-100 dark:bg-gray-900 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6">
                     <UIcon name="i-heroicons-calendar" class="w-12 h-12 text-gray-400" />
                 </div>
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Você ainda não tem eventos</h2>
-                <p class="text-gray-500 mb-8 max-w-md mx-auto">Crie seu primeiro evento para começar a receber confirmações de presença dos seus convidados.</p>
-                <UButton 
-                    label="Criar meu primeiro evento" 
-                    to="/create" 
-                    size="xl" 
-                />
+                <p class="text-gray-500 mb-8 max-w-md mx-auto">Crie seu primeiro evento para começar a receber
+                    confirmações de presença dos seus convidados.</p>
+                <UButton label="Criar meu primeiro evento" to="/create" size="xl" />
             </div>
 
             <!-- Events Grid -->
@@ -74,13 +54,7 @@ const formatDate = (date: string | Date) => {
                     </div>
 
                     <template #footer>
-                        <UButton 
-                            label="Gerenciar" 
-                            :to="`/admin/${event.slug}`" 
-                            block 
-                            color="neutral" 
-                            variant="soft"
-                        />
+                        <UButton label="Gerenciar" :to="`/admin/${event.slug}`" block color="neutral" variant="soft" />
                     </template>
                 </UCard>
             </div>
