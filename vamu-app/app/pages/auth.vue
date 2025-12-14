@@ -6,16 +6,12 @@ const { items, state, loading, getSchema, onSubmit } = useAuth()
 </script>
 
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-12 sm:px-6 lg:px-8">
+  <div
+    class="h-screen overflow-hidden flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4 py-12 sm:px-6 lg:px-8">
     <div class="w-full max-w-sm space-y-8">
 
       <!-- Header -->
       <div class="text-center">
-        <div class="flex justify-center mb-4">
-          <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-xl flex items-center justify-center text-2xl">
-            👋
-          </div>
-        </div>
         <h2 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
           Bem-vindo ao Vamu
         </h2>

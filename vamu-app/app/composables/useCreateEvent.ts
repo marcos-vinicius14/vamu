@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { FormSubmitEvent } from '#ui/types'
-import type { CreateEventFormState, ApiError } from '~/types'
+import type { CreateEventFormState } from '~/types'
+import { useCreateEventMutation } from '~/composables/mutations/useCreateEventMutation'
 
 const schema = z.object({
     title: z.string().min(1, 'Título é obrigatório'),
@@ -12,8 +13,7 @@ const schema = z.object({
 export type CreateEventSchema = z.output<typeof schema>
 
 export function useCreateEvent() {
-    const toast = useToast()
-
+    const mutation = useCreateEventMutation()
 
     const state = reactive<CreateEventFormState>({
         title: undefined,
@@ -22,31 +22,10 @@ export function useCreateEvent() {
         description: undefined
     })
 
-    const loading = ref(false)
+    const loading = computed(() => mutation.isPending.value)
 
     async function onSubmit(event: FormSubmitEvent<CreateEventSchema>) {
-        loading.value = true
-        try {
-            const { slug } = await $fetch('/api/events/create', {
-                method: 'POST',
-                body: event.data
-            })
-
-            toast.add({ title: 'Evento criado com sucesso!', color: 'success' })
-            await navigateTo(`/event/${slug}`)
-        } catch (err: unknown) {
-            const apiError = err as ApiError
-            const msg = apiError.data?.message || apiError.statusMessage || "Ocorreu um erro ao criar o evento."
-
-            toast.add({
-                title: 'Ops! Algo deu errado 😕',
-                description: msg,
-                color: 'error',
-                icon: 'i-heroicons-exclamation-triangle'
-            })
-        } finally {
-            loading.value = false
-        }
+        mutation.mutate(event.data)
     }
 
     return {
@@ -54,5 +33,7 @@ export function useCreateEvent() {
         state,
         loading,
         onSubmit,
+        // Expose mutation state for additional control
+        mutation,
     }
 }
