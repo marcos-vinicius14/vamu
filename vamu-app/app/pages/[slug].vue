@@ -1,15 +1,13 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import { formatPhone, isValidPhone } from '~/utils/phone'
+import type { EventResponse } from '~/types'
 
 const route = useRoute()
 const slug = route.params.slug as string
 const toast = useToast()
 
-import { events } from '~/../../server/database/schemas/app'
-import type { InferSelectModel } from 'drizzle-orm'
-
-const { data: event, error } = await useFetch<InferSelectModel<typeof events>>(`/api/events/${slug}`)
+const { data: event, error } = await useFetch<EventResponse>(`/api/events/${slug}`)
 
 if (error.value || !event.value) {
     throw createError({ statusCode: 404, statusMessage: 'Evento não encontrado.' })

@@ -1,14 +1,19 @@
-import type { DashboardResponse, Guest, ApiError } from '~/types'
+import type { Guest } from '~/types'
+import { useEventDashboardQuery } from '~/composables/queries/useEventDashboardQuery'
 
 type StatusColor = 'success' | 'error' | 'neutral'
 
 export function useAdminDashboard(slug: string) {
     const toast = useToast()
 
-    const { data: dashboard, error, status } = useFetch<DashboardResponse>(
-        `/api/events/${slug}/dashboard`
-    )
+    const { data: dashboard, error, isPending, isError, refetch } = useEventDashboardQuery(slug)
 
+    // Map TanStack Query status to previous useFetch status for compatibility
+    const status = computed(() => {
+        if (isPending.value) return 'pending'
+        if (isError.value) return 'error'
+        return 'success'
+    })
 
     const search = ref('')
 
@@ -84,5 +89,9 @@ export function useAdminDashboard(slug: string) {
         formatDate,
         getStatusColor,
         getStatusLabel,
+        // Expose TanStack Query states
+        isPending,
+        isError,
+        refetch,
     }
 }

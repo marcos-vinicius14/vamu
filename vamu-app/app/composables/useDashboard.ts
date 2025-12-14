@@ -1,8 +1,7 @@
-import type { EventListItem } from '~/types'
+import { useUserEventsQuery } from '~/composables/queries/useUserEventsQuery'
 
 export function useDashboard() {
-
-    const { data: myEvents, status } = useFetch<EventListItem[]>('/api/user/events')
+    const { data: myEvents, isPending, isError, error } = useUserEventsQuery()
 
     const formatDate = (date: string | Date): string => {
         return new Date(date).toLocaleDateString('pt-BR', {
@@ -15,11 +14,20 @@ export function useDashboard() {
     const hasEvents = computed(() => myEvents.value && myEvents.value.length > 0)
     const isEmpty = computed(() => !myEvents.value || myEvents.value.length === 0)
 
+    const status = computed(() => {
+        if (isPending.value) return 'pending'
+        if (isError.value) return 'error'
+        return 'success'
+    })
+
     return {
         myEvents,
         status,
         hasEvents,
         isEmpty,
         formatDate,
+        isPending,
+        isError,
+        error,
     }
 }

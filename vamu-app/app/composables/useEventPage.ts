@@ -1,19 +1,23 @@
-import type { EventResponse, RsvpStatus, ApiError } from '~/types'
+import type { RsvpStatus, ApiError } from '~/types'
 import { formatPhone, isValidPhone } from '~/utils/phone'
+import { useEventQuery } from '~/composables/queries/useEventQuery'
+import { useRsvpMutation } from '~/composables/mutations/useRsvpMutation'
 
 export function useEventPage(slug: string) {
     const toast = useToast()
 
-    const { data: event, error: fetchError, status, refresh } = useFetch<EventResponse>(`/api/events/${slug}`)
+    // Query for fetching event data
+    const { data: event, error: fetchError, isPending, isError, refetch } = useEventQuery(slug)
+
+    // Mutation for RSVP
+    const rsvpMutation = useRsvpMutation(slug)
 
     const rsvpName = ref('')
     const rsvpPhone = ref('')
-    const rsvpLoading = ref(false)
     const rsvpSuccess = ref(false)
     const rsvpStatus = ref<RsvpStatus | null>(null)
 
-    const isLoading = computed(() => status.value === 'pending')
-    const isError = computed(() => status.value === 'error' || !!fetchError.value)
+    const isLoading = computed(() => isPending.value)
     const errorMessage = computed(() => {
         if (!fetchError.value) return null
         const err = fetchError.value as ApiError
@@ -44,50 +48,37 @@ export function useEventPage(slug: string) {
             return
         }
 
-        rsvpLoading.value = true
-        try {
-            await $fetch('/api/rsvp', {
-                method: 'POST',
-                body: {
-                    eventId: event.value?.id,
-                    name: rsvpName.value,
-                    phoneNumber: rsvpPhone.value || undefined,
-                    status
-                }
-            })
-
-            rsvpStatus.value = status
-            rsvpSuccess.value = true
-            rsvpName.value = ''
-            rsvpPhone.value = ''
-
-            if (status === 'CONFIRMED') {
-                toast.add({ title: 'Presença confirmada!', color: 'success' })
-                return
-            }
-
-            toast.add({ title: 'Resposta registrada com sucesso', color: 'neutral' })
-        } catch (err: unknown) {
-            const apiError = err as ApiError
-            const msg = apiError.data?.message || apiError.statusMessage || "Ocorreu um erro inesperado."
-
-            toast.add({
-                title: 'Ops! Algo deu errado 😕',
-                description: msg,
-                color: 'error',
-                icon: 'i-heroicons-exclamation-triangle'
-            })
-        } finally {
-            rsvpLoading.value = false
+        if (!event.value?.id) {
+            toast.add({ title: 'Evento não encontrado', color: 'error' })
+            return
         }
+
+        rsvpMutation.mutate(
+            {
+                eventId: event.value.id,
+                name: rsvpName.value,
+                phoneNumber: rsvpPhone.value || undefined,
+                status,
+            },
+            {
+                onSuccess: () => {
+                    rsvpStatus.value = status
+                    rsvpSuccess.value = true
+                    rsvpName.value = ''
+                    rsvpPhone.value = ''
+                },
+            }
+        )
     }
+
+    const rsvpLoading = computed(() => rsvpMutation.isPending.value)
 
     const resetRsvp = () => {
         rsvpSuccess.value = false
     }
 
     const retry = () => {
-        refresh()
+        refetch()
     }
 
     const mapUrl = computed(() =>
@@ -128,5 +119,7 @@ export function useEventPage(slug: string) {
         mapUrl,
         formattedDate,
         formattedTime,
+        // Expose mutation for additional control
+        rsvpMutation,
     }
 }
