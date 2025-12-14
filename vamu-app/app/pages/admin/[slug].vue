@@ -116,6 +116,15 @@ if (error.value) {
                             <span class="font-medium text-gray-900 dark:text-white">{{ row.original.name }}</span>
                         </template>
 
+                        <template #phoneNumber-cell="{ row }">
+                            <div class="flex items-center gap-2">
+                                <WhatsAppLink v-if="row.original.phoneNumber" :phone="row.original.phoneNumber"
+                                    compact />
+                                <span class="text-gray-600 dark:text-gray-300">{{ row.original.phoneNumber || '-'
+                                    }}</span>
+                            </div>
+                        </template>
+
                         <template #status-cell="{ row }">
                             <UBadge :color="getStatusColor(row.original.status ?? '')" variant="subtle">
                                 {{ getStatusLabel(row.original.status ?? '') }}
