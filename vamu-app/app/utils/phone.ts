@@ -20,3 +20,13 @@ export const isValidPhone = (value: string) => {
     const digits = value.replace(/\D/g, '')
     return digits.length === 11
 }
+
+export const getWhatsAppUrl = (phone: string, text?: string): string => {
+    const digits = phone.replace(/\D/g, '')
+
+    // Assume Brazil (+55) if number is 10-11 digits (local format)
+    const fullNumber = digits.length <= 11 ? `55${digits}` : digits
+
+    const baseUrl = `https://wa.me/${fullNumber}`
+    return text ? `${baseUrl}?text=${encodeURIComponent(text)}` : baseUrl
+}
