@@ -6,10 +6,13 @@ const slug = route.params.slug as string
 
 const {
   event,
-  error,
+  isLoading,
+  isError,
+  errorMessage,
+  retry,
   rsvpName,
   rsvpPhone,
-  loading,
+  rsvpLoading,
   rsvpSuccess,
   rsvpStatus,
   submitRsvp,
@@ -17,22 +20,54 @@ const {
   mapUrl,
   formattedDate,
   formattedTime,
-} = await useEventPage(slug)
+} = useEventPage(slug)
 
-if (error.value || !event.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Evento não encontrado.' })
-}
-
-useSeoMeta({
-  title: event.value.title,
-  description: event.value.description,
-  ogTitle: event.value.title,
-  ogDescription: event.value.description,
+watchEffect(() => {
+  if (event.value) {
+    useSeoMeta({
+      title: event.value.title,
+      description: event.value.description,
+      ogTitle: event.value.title,
+      ogDescription: event.value.description,
+    })
+  }
 })
 </script>
 
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6">
+  <!-- Loading State -->
+  <div v-if="isLoading" class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
+    <div class="text-center space-y-4">
+      <UIcon name="i-heroicons-arrow-path" class="w-10 h-10 animate-spin text-gray-400" />
+      <p class="text-gray-500">Carregando evento...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div v-else-if="isError" class="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center px-4">
+    <div class="text-center space-y-6 max-w-md">
+      <div
+        class="w-20 h-20 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mx-auto">
+        <UIcon name="i-heroicons-exclamation-triangle" class="w-10 h-10" />
+      </div>
+      <div class="space-y-2">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Evento não encontrado</h1>
+        <p class="text-gray-500">{{ errorMessage || 'O evento que você está procurando não existe ou foi removido.' }}
+        </p>
+      </div>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <UButton @click="retry" icon="i-heroicons-arrow-path" color="primary" variant="soft">
+          Tentar novamente
+        </UButton>
+        <UButton to="/" color="neutral" variant="ghost">
+          Voltar ao início
+        </UButton>
+      </div>
+    </div>
+  </div>
+
+  <!-- Event Content -->
+  <div v-else-if="event" class="min-h-screen bg-gray-50 dark:bg-gray-950 py-12 px-4 sm:px-6">
     <div class="max-w-2xl mx-auto space-y-12">
 
       <div class="space-y-6">
@@ -42,11 +77,11 @@ useSeoMeta({
 
         <div class="space-y-2">
           <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white tracking-tight leading-tight">
-            {{ event?.title }}
+            {{ event.title }}
           </h1>
-          <div class="flex items-center gap-2 text-gray-500 font-medium">
+          <div v-if="event.user" class="flex items-center gap-2 text-gray-500 font-medium">
             <span>Convite de</span>
-            <span class="text-gray-900 dark:text-gray-300 font-semibold">{{ event?.user.name }}</span>
+            <span class="text-gray-900 dark:text-gray-300 font-semibold">{{ event.user.name }}</span>
           </div>
         </div>
       </div>
@@ -63,24 +98,23 @@ useSeoMeta({
           </div>
         </div>
 
-        <div class="flex items-start gap-4" v-if="event?.location">
+        <div class="flex items-start gap-4" v-if="event.location">
           <div class="p-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-500">
             <UIcon name="i-heroicons-map-pin" class="w-6 h-6" />
           </div>
           <div class="space-y-1">
             <div class="font-semibold text-gray-900 dark:text-white">Local</div>
             <div class="text-gray-700 dark:text-gray-300 break-words line-clamp-2 md:line-clamp-none">{{ event.location
-            }}</div>
+              }}</div>
             <UButton :to="mapUrl" target="_blank" variant="link" color="neutral"
               icon="i-heroicons-arrow-top-right-on-square" size="xs" class="p-0 gap-1">
               Ver no Mapa
             </UButton>
           </div>
         </div>
-
       </div>
 
-      <div v-if="event?.description"
+      <div v-if="event.description"
         class="prose prose-lg dark:prose-invert prose-gray max-w-none text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
         {{ event.description }}
       </div>
@@ -107,8 +141,7 @@ useSeoMeta({
               <p class="text-gray-500 dark:text-gray-400">Que pena... 😢 Sua resposta foi enviada ao anfitrião.</p>
             </template>
 
-            <UButton @click="resetRsvp" color="neutral" variant="ghost" size="sm">Enviar outra resposta
-            </UButton>
+            <UButton @click="resetRsvp" color="neutral" variant="ghost" size="sm">Enviar outra resposta</UButton>
           </div>
 
           <!-- Form State -->
@@ -118,12 +151,12 @@ useSeoMeta({
               type="tel" @keypress="(e: KeyboardEvent) => { if (!/[0-9]/.test(e.key)) e.preventDefault() }" />
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <UButton @click="submitRsvp('CONFIRMED')" :loading="loading" type="button" color="neutral" variant="solid"
-                block size="xl" label="Confirmar Presença 🥳"
+              <UButton @click="submitRsvp('CONFIRMED')" :loading="rsvpLoading" type="button" color="neutral"
+                variant="solid" block size="xl" label="Confirmar Presença 🥳"
                 :ui="{ base: 'bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200' }" />
 
-              <UButton @click="submitRsvp('DECLINED')" :loading="loading" type="button" color="neutral" variant="subtle"
-                block size="xl" label="Não poderei ir" />
+              <UButton @click="submitRsvp('DECLINED')" :loading="rsvpLoading" type="button" color="neutral"
+                variant="subtle" block size="xl" label="Não poderei ir" />
             </div>
           </div>
         </UCard>

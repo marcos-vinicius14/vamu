@@ -10,7 +10,7 @@ export interface EventResponse {
     location: string | null
     description: string | null
     theme: string | null
-    user: {
+    user?: {
         name: string
         avatar?: string
     }

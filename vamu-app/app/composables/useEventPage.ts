@@ -4,13 +4,21 @@ import { formatPhone, isValidPhone } from '~/utils/phone'
 export function useEventPage(slug: string) {
     const toast = useToast()
 
-    const { data: event, error } = useFetch<EventResponse>(`/api/events/${slug}`)
+    const { data: event, error: fetchError, status, refresh } = useFetch<EventResponse>(`/api/events/${slug}`)
 
     const rsvpName = ref('')
     const rsvpPhone = ref('')
-    const loading = ref(false)
+    const rsvpLoading = ref(false)
     const rsvpSuccess = ref(false)
     const rsvpStatus = ref<RsvpStatus | null>(null)
+
+    const isLoading = computed(() => status.value === 'pending')
+    const isError = computed(() => status.value === 'error' || !!fetchError.value)
+    const errorMessage = computed(() => {
+        if (!fetchError.value) return null
+        const err = fetchError.value as ApiError
+        return err.data?.message || err.statusMessage || 'Evento não encontrado'
+    })
 
     watch(rsvpPhone, (val) => {
         if (!val) return
@@ -36,7 +44,7 @@ export function useEventPage(slug: string) {
             return
         }
 
-        loading.value = true
+        rsvpLoading.value = true
         try {
             await $fetch('/api/rsvp', {
                 method: 'POST',
@@ -59,7 +67,6 @@ export function useEventPage(slug: string) {
             }
 
             toast.add({ title: 'Resposta registrada com sucesso', color: 'neutral' })
-
         } catch (err: unknown) {
             const apiError = err as ApiError
             const msg = apiError.data?.message || apiError.statusMessage || "Ocorreu um erro inesperado."
@@ -71,12 +78,16 @@ export function useEventPage(slug: string) {
                 icon: 'i-heroicons-exclamation-triangle'
             })
         } finally {
-            loading.value = false
+            rsvpLoading.value = false
         }
     }
 
     const resetRsvp = () => {
         rsvpSuccess.value = false
+    }
+
+    const retry = () => {
+        refresh()
     }
 
     const mapUrl = computed(() =>
@@ -103,10 +114,13 @@ export function useEventPage(slug: string) {
 
     return {
         event,
-        error,
+        isLoading,
+        isError,
+        errorMessage,
+        retry,
         rsvpName,
         rsvpPhone,
-        loading,
+        rsvpLoading,
         rsvpSuccess,
         rsvpStatus,
         submitRsvp,

@@ -24,7 +24,6 @@ export function useAuth() {
         { label: 'Cadastro', key: 'register', slot: 'form' }
     ]
 
-
     const state = reactive<AuthFormState>({
         name: '',
         email: '',
@@ -38,48 +37,47 @@ export function useAuth() {
     }
 
     async function onSubmit(mode: AuthMode) {
-
-        async function onSubmit(mode: AuthMode) {
-            loading.value = true
-            try {
-                if (mode === 'register') {
-                    const { error } = await signUp.email({
-                        email: state.email,
-                        password: state.password,
-                        name: state.name,
-                    })
-                    if (error) throw error
-                    toast.add({ title: 'Conta criada com sucesso!', color: 'success' })
-                } else {
-                    const { error } = await signIn.email({
-                        email: state.email,
-                        password: state.password,
-                    })
-                    if (error) throw error
-                    toast.add({ title: 'Login realizado com sucesso!', color: 'success' })
-                }
-                await navigateTo('/dashboard')
-            } catch (err: unknown) {
-                const apiError = err as ApiError
-                const msg = apiError.data?.message || apiError.statusMessage || apiError.message || "Ocorreu um erro inesperado."
-
-                toast.add({
-                    title: 'Ops! Algo deu errado 😕',
-                    description: msg,
-                    color: 'error',
-                    icon: 'i-heroicons-exclamation-triangle'
+        loading.value = true
+        try {
+            if (mode === 'register') {
+                const { error } = await signUp.email({
+                    email: state.email,
+                    password: state.password,
+                    name: state.name,
                 })
-            } finally {
-                loading.value = false
+                if (error) throw error
+                toast.add({ title: 'Conta criada com sucesso!', color: 'success' })
+                await navigateTo('/dashboard')
+                return
             }
-        }
 
-        return {
-            items,
-            state,
-            loading,
-            getSchema,
-            onSubmit,
+            const { error } = await signIn.email({
+                email: state.email,
+                password: state.password,
+            })
+            if (error) throw error
+            toast.add({ title: 'Login realizado com sucesso!', color: 'success' })
+            await navigateTo('/dashboard')
+        } catch (err: unknown) {
+            const apiError = err as ApiError
+            const msg = apiError.data?.message || apiError.statusMessage || apiError.message || "Ocorreu um erro inesperado."
+
+            toast.add({
+                title: 'Ops! Algo deu errado 😕',
+                description: msg,
+                color: 'error',
+                icon: 'i-heroicons-exclamation-triangle'
+            })
+        } finally {
+            loading.value = false
         }
+    }
+
+    return {
+        items,
+        state,
+        loading,
+        getSchema,
+        onSubmit,
     }
 }
