@@ -10,7 +10,50 @@ export default defineNuxtConfig({
   },
 
   modules: [
-    '@nuxt/ui'
+    '@nuxt/ui',
+    '@vite-pwa/nuxt'
   ],
+
+  pwa: {
+    registerType: 'prompt',
+    manifest: {
+      name: 'Vamu - Gerenciador de Eventos',
+      short_name: 'Vamu',
+      description: 'Crie e gerencie seus eventos com facilidade',
+      theme_color: '#ffffff',
+      background_color: '#ffffff',
+      display: 'standalone',
+      icons: [
+        {
+          src: '/pwa-icons/icon-192x192.png',
+          sizes: '192x192',
+          type: 'image/png'
+        },
+        {
+          src: '/pwa-icons/icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png'
+        },
+        {
+          src: '/pwa-icons/icon-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable'
+        }
+      ]
+    },
+    workbox: {
+      navigateFallback: '/',
+      globPatterns: ['**/*.{js,css,html,png,svg,ico}']
+    },
+    client: {
+      installPrompt: true
+    },
+    devOptions: {
+      enabled: true,
+      type: 'module'
+    }
+  },
+
   css: ['~/assets/css/main.css']
 })
