@@ -22,22 +22,27 @@ jobs:
       - name: Install dependencies
         run: bun install
 
+    
+      - name: Run tests
+        run: bun test
+
       - name: Run migrations
         run: bun run db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MIGRATION_DB_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Build
         run: bun run build
         env:
           NODE_ENV: production
-          DATABASE_URL: ${{ secrets.DATABASE_URL }} 
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
 
-      - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy .output/public --project-name=vamu-app
+      - name: Deploy to Cloudflare Pages (Manual CLI)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          bun x wrangler pages deploy .output/public --project-name=vamu-app --commit-dirty=true
