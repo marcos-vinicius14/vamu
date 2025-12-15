@@ -1,0 +1,48 @@
+name: Deploy to Cloudflare Pages
+#testee
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+    
+      - name: Run tests
+        run: bun test
+
+      - name: Run migrations
+        run: bun run db:migrate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          MIGRATION_DB_URL: ${{ secrets.DATABASE_URL }}
+
+      - name: Build
+        run: bun run build
+        env:
+          NODE_ENV: production
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+
+      - name: Deploy to Cloudflare Pages (Manual CLI)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          bun x wrangler pages deploy .output/public --project-name=vamu-app --commit-dirty=true
