@@ -4,10 +4,13 @@ import * as schema from '../database/schemas'
 import { env } from './env'
 
 const createClient = () => {
+    const isNeon = env.DATABASE_URL.includes('neon.tech')
+    const sslMode = isNeon ? 'require' : (env.DB_SSL === 'disable' ? false : env.DB_SSL)
+
     return postgres(env.DATABASE_URL, {
         max: env.DB_MAX_CONNECTIONS,
         idle_timeout: 20,
-        ssl: env.DB_SSL === 'disable' ? false : env.DB_SSL,
+        ssl: sslMode,
         prepare: false,
     })
 }
