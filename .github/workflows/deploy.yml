@@ -32,7 +32,9 @@ jobs:
         run: bun test
 
       - name: Build Nuxt
-        run: bun run build
+        run: |
+          bun run build
+          echo "Build exit code: $?"
         env:
           NODE_ENV: production
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -40,7 +42,14 @@ jobs:
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
 
       - name: List build output
-        run: ls -la .output/
+        if: always()
+        run: |
+          echo "Current directory:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo ".output contents (if exists):"
+          ls -la .output/ || echo ".output directory does not exist"
 
       - name: Deploy to Netlify
         run: bun x netlify-cli deploy --prod --dir=.output/public --functions=.output/server
