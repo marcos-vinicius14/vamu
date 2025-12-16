@@ -52,7 +52,7 @@ jobs:
           ls -la .output/ || echo ".output directory does not exist"
 
       - name: Deploy to Netlify
-        run: bun x netlify-cli deploy --prod --dir=.output/public --functions=.output/server
+        run: npx netlify-cli deploy --prod --build=false --dir=.output/public --functions=.netlify/functions-internal
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
