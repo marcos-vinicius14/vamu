@@ -22,26 +22,25 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Run tests
-        run: bun test
-
       - name: Run migrations
         run: bun run db:migrate
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           MIGRATION_DB_URL: ${{ secrets.DATABASE_URL }}
 
-      - name: Build
+      - name: Run tests
+        run: bun test
+
+      - name: Build Nuxt
         run: bun run build
         env:
           NODE_ENV: production
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
-          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          BETTER_AUTH_SECRET: "build-placeholder-secret"
+          BETTER_AUTH_URL: "https://placeholder.netlify.app"
 
       - name: Deploy to Netlify
+        run: bun x netlify-cli deploy --prod --dir=.output/public
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-        run: |
-          bun x netlify-cli deploy --prod --dir=.output/public --functions=.output/server
