@@ -51,7 +51,8 @@ jobs:
           echo ".output contents (if exists):"
           ls -la .output/ || echo ".output directory does not exist"
 
-      - name: Deploy to Netlify (Upload Only)
+      - name: Deploy to Netlify
+        if: success()
         run: bun x netlify-cli deploy --prod --dir=.output/public
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
