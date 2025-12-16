@@ -4,8 +4,10 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   runtimeConfig: {
+    betterAuthSecret: process.env.BETTER_AUTH_SECRET,
     public: {
-      authBaseUrl: process.env.NUXT_PUBLIC_AUTH_BASE_URL || 'http://localhost:3000'
+      // authBaseUrl: process.env.NUXT_PUBLIC_AUTH_BASE_URL
+      betterAuthUrl: process.env.NUXT_PUBLIC_BETTER_AUTH_URL,
     }
   },
 

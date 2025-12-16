@@ -1,7 +1,7 @@
 import { createAuthClient } from "better-auth/vue"
 
 export const authClient = createAuthClient({
-    baseURL: "http://localhost:3000" //TODO: Em produção isso virá do .env
+    baseURL: import.meta.env.VITE_API_BASE_URL as string || "http://localhost:3000"
 })
 
-export const { signIn, signUp, signOut, useSession } = authClient
+export const { signIn, signUp, signOut, useSession } = authClient;
