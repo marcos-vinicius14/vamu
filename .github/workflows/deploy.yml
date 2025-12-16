@@ -1,5 +1,5 @@
-name: Deploy to Cloudflare Pages
-#testee
+name: Deploy to Netlify
+
 on:
   push:
     branches:
@@ -22,7 +22,6 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-    
       - name: Run tests
         run: bun test
 
@@ -40,9 +39,9 @@ jobs:
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
 
-      - name: Deploy to Cloudflare Pages (Manual CLI)
+      - name: Deploy to Netlify
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
         run: |
-          bun x wrangler pages deploy .output/public --project-name=vamu-app --commit-dirty=true
+          bun x netlify-cli deploy --prod --dir=.output/public --functions=.output/server
