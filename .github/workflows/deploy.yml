@@ -36,11 +36,14 @@ jobs:
         env:
           NODE_ENV: production
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BETTER_AUTH_SECRET: "build-placeholder-secret"
-          BETTER_AUTH_URL: "https://placeholder.netlify.app"
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+
+      - name: List build output
+        run: ls -la .output/
 
       - name: Deploy to Netlify
-        run: bun x netlify-cli deploy --prod --dir=.output/public
+        run: bun x netlify-cli deploy --prod --dir=.output/public --functions=.output/server
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}

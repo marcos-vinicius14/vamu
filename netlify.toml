@@ -1,5 +1,5 @@
+# Build is handled by GitHub Actions, not Netlify
 [build]
-  command = "bun run build"
   publish = ".output/public"
 
 [functions]
