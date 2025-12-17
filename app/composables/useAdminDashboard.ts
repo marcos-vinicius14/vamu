@@ -33,12 +33,16 @@ export function useAdminDashboard(slug: string) {
     ]
 
     const shareOnWhatsApp = () => {
+        if (typeof window === 'undefined') return
+
         const text = `Olá! Estou te convidando para o meu evento "${dashboard.value?.event.title}". Confirme sua presença aqui: ${window.location.origin}/${slug}`
         const url = `https://wa.me/?text=${encodeURIComponent(text)}`
         window.open(url, '_blank')
     }
 
     const copyLink = () => {
+        if (typeof window === 'undefined') return
+
         const url = `${window.location.origin}/${slug}`
         navigator.clipboard.writeText(url)
         toast.add({ title: 'Link copiado!', color: 'success' })
@@ -50,7 +54,8 @@ export function useAdminDashboard(slug: string) {
 
     const formatDate = (date: string | Date | null): string => {
         if (!date) return '-'
-        return new Date(date).toLocaleDateString('pt-BR', {
+
+        return new Date(date).toLocaleString('pt-BR', {
             day: '2-digit',
             month: '2-digit',
             year: '2-digit',
@@ -89,7 +94,6 @@ export function useAdminDashboard(slug: string) {
         formatDate,
         getStatusColor,
         getStatusLabel,
-        // Expose TanStack Query states
         isPending,
         isError,
         refetch,
