@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useSession, signOut } from '~/lib/auth-client'
+import { useSession, useAuthClient } from '~/lib/auth-client'
 
 const session = useSession()
+const { signOut } = useAuthClient()
 const router = useRouter()
 const { canInstall, installPwa } = usePwaInstall()
 

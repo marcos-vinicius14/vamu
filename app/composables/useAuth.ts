@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { signUp, signIn } from '~/lib/auth-client'
+import { useAuthClient } from '~/lib/auth-client'
 import type { AuthFormState, AuthMode, ApiError } from '~/types'
 
 const loginSchema = z.object({
@@ -18,6 +18,7 @@ export type RegisterSchema = z.output<typeof registerSchema>
 
 export function useAuth() {
     const toast = useToast()
+    const { signIn, signUp } = useAuthClient()
 
     const items = [
         { label: 'Login', key: 'login', slot: 'form' },
