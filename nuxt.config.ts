@@ -7,13 +7,17 @@ export default defineNuxtConfig({
     betterAuthSecret: process.env.BETTER_AUTH_SECRET,
     public: {
       betterAuthUrl: process.env.NUXT_PUBLIC_BETTER_AUTH_URL || process.env.VITE_API_BASE_URL || 'http://localhost:3000',
+      sentry: {
+        dsn: process.env.NUXT_PUBLIC_SENTRY_DSN,
+        release: process.env.COMMIT_REF || 'development',
+        tracesSampleRate: 1.0,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1.0,
+      }
     }
   },
 
-  modules: [
-    '@nuxt/ui',
-    '@vite-pwa/nuxt'
-  ],
+  modules: ['@nuxt/ui', '@vite-pwa/nuxt', '@sentry/nuxt/module'],
 
   pwa: {
     registerType: 'prompt',
@@ -65,5 +69,10 @@ export default defineNuxtConfig({
     }
   },
 
-  css: ['~/assets/css/main.css']
+  css: ['~/assets/css/main.css'],
+
+  sourcemap: {
+    client: true,
+    server: true
+  }
 })
