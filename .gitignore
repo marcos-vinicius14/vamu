@@ -25,3 +25,5 @@ logs
 
 
 .agent
+# Sentry Config File
+.env.sentry-build-plugin
