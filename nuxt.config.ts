@@ -17,19 +17,6 @@ export default defineNuxtConfig({
     }
   },
 
-  nitro: {
-    esbuild: {
-      options: {
-        external: [
-          '@opentelemetry/api',
-          '@opentelemetry/semantic-conventions',
-          '@opentelemetry/core',
-          '@opentelemetry/resources',
-          '@opentelemetry/instrumentation'
-        ]
-      }
-    }
-  },
 
   modules: ['@nuxt/ui', '@vite-pwa/nuxt', '@sentry/nuxt/module'],
 
@@ -80,6 +67,17 @@ export default defineNuxtConfig({
       dir: '.output',
       serverDir: '.output/server',
       publicDir: '.output/public'
+    },
+    externals: {
+      inline: [
+        '@opentelemetry/api',
+        '@opentelemetry/semantic-conventions',
+        '@opentelemetry/core',
+        '@opentelemetry/resources',
+        '@opentelemetry/instrumentation',
+        '@opentelemetry/sdk-trace-base',
+        '@opentelemetry/sdk-node'
+      ]
     }
   },
 
