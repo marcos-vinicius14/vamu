@@ -109,7 +109,7 @@ const shareOnWhatsApp = () => {
                 <div class="flex flex-col gap-3 text-sm font-medium text-gray-600 dark:text-gray-300">
                     <div class="flex items-center justify-center gap-2">
                         <UIcon name="i-heroicons-calendar" class="w-5 h-5" />
-                        {{ new Date(event.date).toLocaleDateString('pt-BR', { dateStyle: 'full', timeStyle: 'short' }) }}
+                        {{ new Date(event.date).toLocaleString('pt-BR', { dateStyle: 'full', timeStyle: 'short' }) }}
                     </div>
                     <div class="flex items-center justify-center gap-2">
                         <UIcon name="i-heroicons-map-pin" class="w-5 h-5" />
