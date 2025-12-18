@@ -17,6 +17,20 @@ export default defineNuxtConfig({
     }
   },
 
+  nitro: {
+    esbuild: {
+      options: {
+        external: [
+          '@opentelemetry/api',
+          '@opentelemetry/semantic-conventions',
+          '@opentelemetry/core',
+          '@opentelemetry/resources',
+          '@opentelemetry/instrumentation'
+        ]
+      }
+    }
+  },
+
   modules: ['@nuxt/ui', '@vite-pwa/nuxt', '@sentry/nuxt/module'],
 
   pwa: {
