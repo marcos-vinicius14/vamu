@@ -17,7 +17,6 @@ export default defineNuxtConfig({
     }
   },
 
-
   modules: ['@nuxt/ui', '@vite-pwa/nuxt', '@sentry/nuxt/module'],
 
   pwa: {
@@ -67,49 +66,6 @@ export default defineNuxtConfig({
       dir: '.output',
       serverDir: '.output/server',
       publicDir: '.output/public'
-    },
-    externals: {
-      // Force Nitro to bundle these dependencies instead of expecting them in node_modules
-      inline: [
-        // OpenTelemetry - complete dependency tree
-        '@opentelemetry/api',
-        '@opentelemetry/core',
-        '@opentelemetry/semantic-conventions',
-        '@opentelemetry/resources',
-        '@opentelemetry/sdk-trace-base',
-        '@opentelemetry/sdk-trace-node',
-        '@opentelemetry/sdk-node',
-        '@opentelemetry/instrumentation',
-        '@opentelemetry/context-async-hooks',
-        '@opentelemetry/propagator-b3',
-        '@opentelemetry/propagator-jaeger',
-        '@opentelemetry/exporter-trace-otlp-http',
-        '@opentelemetry/exporter-trace-otlp-grpc',
-        '@opentelemetry/exporter-trace-otlp-proto',
-        '@opentelemetry/sampler-jaeger-remote',
-        // Sentry packages
-        '@sentry/core',
-        '@sentry/node',
-        '@sentry/nuxt',
-        '@sentry/opentelemetry',
-        '@sentry/utils',
-        '@sentry-internal/browser-utils',
-        '@sentry-internal/feedback',
-        '@sentry-internal/replay',
-        '@sentry-internal/replay-canvas'
-      ]
-    },
-    // Configure Rollup to handle ESM properly
-    rollupConfig: {
-      output: {
-        // Use ESM format to avoid import.meta warnings
-        format: 'esm'
-      },
-      onwarn(warning, warn) {
-        // Suppress import.meta warnings from OpenTelemetry internals
-        if (warning.code === 'INVALID_IMPORT_META') return
-        warn(warning)
-      }
     }
   },
 
